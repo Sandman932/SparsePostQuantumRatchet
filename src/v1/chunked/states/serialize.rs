@@ -134,8 +134,10 @@ impl MessageType {
     }
 }
 
+const MAX_VARINT_BYTES_LEN: usize = 10;
+
 fn encode_varint(mut a: u64, into: &mut SerializedMessage) {
-    for _i in 0..10 {
+    for _i in 0..MAX_VARINT_BYTES_LEN {
         let byte = (a & 0x7F) as u8;
         if a < 0x80 {
             into.push(byte);
@@ -147,10 +149,9 @@ fn encode_varint(mut a: u64, into: &mut SerializedMessage) {
     }
 }
 
-#[hax_lib::ensures(|res| if res.is_ok() { *at < from.len() && *future(at) <= from.len()} else { true })]
+#[hax_lib::ensures(|res| *at <= *future(at) && if res.is_ok() { *at < from.len() && *future(at) <= from.len() } else { true })]
 fn decode_varint(from: &SerializedMessage, at: &mut usize) -> Result<u64, Error> {
     let mut out = 0u64;
-    const MAX_VARINT_BYTES_LEN: usize = 10;
 
     let mut i: usize = 0;
     // Helps prevent return in while loop for Hax
