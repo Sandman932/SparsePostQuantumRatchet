@@ -5,3 +5,9 @@ pre-build = [
   "unzip protoc-29.3-linux-x86_64.zip -d protoc",
   "mv protoc/bin/protoc /usr/bin",
   ]
+
+[build.env]
+passthrough = [
+  "RUST_LOG",
+  ]
+volumes = ["/tmp:/tmp"]

@@ -1066,4 +1066,108 @@ mod lib_test {
         ));
         Ok(())
     }
+
+    /// A test that runs a set number of steps, always sending one message A->B, then
+    /// one message B->A, with logging turned on, so we can watch how things work
+    /// in the most predictable case.
+    #[test]
+    fn lockstep_run_with_logging() -> Result<(), Error> {
+        let _ = env_logger::builder().is_test(true).try_init();
+        let mut rng = OsRng.unwrap_err();
+
+        let version = Version::V1;
+
+        let mut alex_pq_state = initial_state(Params {
+            version,
+            min_version: version,
+            direction: Direction::A2B,
+            auth_key: &[41u8; 32],
+            chain_params: ChainParams::default(),
+        })?;
+        let mut blake_pq_state = initial_state(Params {
+            version,
+            min_version: version,
+            direction: Direction::B2A,
+            auth_key: &[41u8; 32],
+            chain_params: ChainParams::default(),
+        })?;
+
+        for i in 0..30 {
+            log::info!("step {}", i);
+            // Now let's send some messages
+            let Send {
+                state,
+                msg,
+                key: alex_key,
+            } = send(&alex_pq_state, &mut rng)?;
+            alex_pq_state = state;
+            let Recv {
+                state,
+                key: blake_key,
+            } = recv(&blake_pq_state, &msg)?;
+            blake_pq_state = state;
+            assert_eq!(alex_key, blake_key);
+            let Send {
+                state,
+                msg,
+                key: blake_key,
+            } = send(&blake_pq_state, &mut rng)?;
+            blake_pq_state = state;
+            let Recv {
+                state,
+                key: alex_key,
+            } = recv(&alex_pq_state, &msg)?;
+            alex_pq_state = state;
+            assert_eq!(alex_key, blake_key);
+        }
+        log::info!("alex_state:  {}", hex::encode(alex_pq_state));
+        log::info!("blake_state: {}", hex::encode(blake_pq_state));
+        Ok(())
+    }
+
+    #[test]
+    fn regression_test_libcrux_issue_1275_from_generated_states() -> Result<(), Error> {
+        let _ = env_logger::builder().is_test(true).try_init();
+        let mut rng = OsRng.unwrap_err();
+
+        // These states are generated using the old "portable" logic for libcrux-ml-kem
+        // EncapsState serialization prior to libcrux:pr/1276, 30 steps into a lockstep
+        // protocol.  The send_ct side has already generated the encapsulation state
+        // and stored it locally, but hasn't yet called encapsulate2 on it.  This tests
+        // to make sure that the incremental_mlkem code path correctly notices and handles
+        // this eventuality.
+        let mut alex_pq_state = include_bytes!("issue1275_a_state.in").to_vec();
+        let mut blake_pq_state = include_bytes!("issue1275_b_state.in").to_vec();
+
+        // After 20 additional steps, we should be in epoch 2 successfully.  If
+        // we're unable to handle the bad state, one of these steps will fail.
+        for i in 30..50 {
+            log::info!("step {}", i);
+            let Send {
+                state,
+                msg,
+                key: alex_key,
+            } = send(&alex_pq_state, &mut rng)?;
+            alex_pq_state = state;
+            let Recv {
+                state,
+                key: blake_key,
+            } = recv(&blake_pq_state, &msg)?;
+            blake_pq_state = state;
+            assert_eq!(alex_key, blake_key);
+            let Send {
+                state,
+                msg,
+                key: blake_key,
+            } = send(&blake_pq_state, &mut rng)?;
+            blake_pq_state = state;
+            let Recv {
+                state,
+                key: alex_key,
+            } = recv(&alex_pq_state, &msg)?;
+            alex_pq_state = state;
+            assert_eq!(alex_key, blake_key);
+        }
+        Ok(())
+    }
 }
