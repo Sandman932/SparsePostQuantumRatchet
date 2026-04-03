@@ -1,3 +1,16 @@
+# Anamorphic SPQR (fork by [Sandman932](https://github.com/Sandman932))
+
+> Forked from [SPQR: The Sparse Post Quantum Ratchet](https://github.com/signalapp/SparsePostQuantumRatchet) by [Signal](https://github.com/signalapp).
+
+## TODOs
+- [ ] Add anamorphic channel
+    - [ ] ...
+- [ ] Add tests [optional]
+- [ ] Add machine verification using [hax](https://github.com/cryspen/hax) and
+  [F*](https://fstar-lang.org/) [optional]
+
+---
+
 # SPQR: The Sparse Post Quantum Ratchet
 
 ## Table of Contents
