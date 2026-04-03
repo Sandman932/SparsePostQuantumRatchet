@@ -1,5 +1,7 @@
 ## Reporting a Vulnerability
 
+> Does not apply to modified code in this fork.
+
 If you've found a security vulnerability in this repository,
 please report it via email to <security@signal.org>.
 
