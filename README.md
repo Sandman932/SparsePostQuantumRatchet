@@ -9,6 +9,11 @@
 - [ ] Add machine verification using [hax](https://github.com/cryspen/hax) and
   [F*](https://fstar-lang.org/) [optional]
 
+## Setup
+- [ ] Install [Rust](https://rust-lang.org/tools/install/)
+- [ ] Install [Protobuf](https://protobuf.dev/installation/)
+- [ ] ...
+
 ---
 
 # SPQR: The Sparse Post Quantum Ratchet
